@@ -1,15 +1,21 @@
+/* General Dashboard Container */
 .dashboard-container {
   padding: 20px;
-  background-color: #f7f7f7;
+  background-color: #f9f9f9;
+  max-width: 1200px;
+  margin: 0 auto;
+  font-family: 'Poppins', sans-serif;
 }
 
+/* Welcome Header */
 .welcome-header {
-  margin-bottom: 20px;
+  margin-bottom: 30px;
   text-align: center;
   background-color: #6c5ce7;
   color: white;
-  padding: 20px;
-  border-radius: 10px;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 .welcome-header .user-name {
@@ -17,19 +23,38 @@
   color: #cd8dfe;
 }
 
+/* Key Metrics Section */
 .key-metrics {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 20px;
-  margin-bottom: 20px;
+  margin-bottom: 30px;
 }
 
 .key-metrics .metric {
-  flex: 1;
   background-color: #ffffff;
-  padding: 15px;
-  border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.key-metrics .metric:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+}
+
+.key-metrics .metric h3 {
+  font-size: 1.2rem;
+  color: #555;
+  margin-bottom: 10px;
+}
+
+.key-metrics .metric p {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #333;
 }
 
 .key-metrics .metric.total-balance {
@@ -48,30 +73,92 @@
   border-left: 5px solid #fd76ff;
 }
 
-.money-flow-chart,
-.recent-transactions,
-.budget-overview,
-.saving-goals {
-  margin-bottom: 20px;
+/* Recent Transactions Section */
+.recent-transactions {
+  margin-top: 20px;
 }
 
-.recent-transactions table {
+.recent-transactions h3 {
+  font-size: 1.5rem;
+  color: #333;
+  margin-bottom: 15px;
+}
+
+.table-container {
+  overflow-x: auto;
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  padding: 15px;
+}
+
+.transactions-table {
   width: 100%;
   border-collapse: collapse;
 }
 
-.recent-transactions th,
-.recent-transactions td {
-  padding: 10px;
-  border: 1px solid #ddd;
+.transactions-table th,
+.transactions-table td {
+  padding: 12px;
   text-align: left;
+  border-bottom: 1px solid #ddd;
 }
 
-.recent-transactions tr:nth-child(even) {
+.transactions-table th {
+  background-color: #6c5ce7;
+  color: white;
+  font-weight: bold;
+}
+
+.transactions-table tr:nth-child(even) {
   background-color: #f9f9f9;
 }
 
+.transactions-table tr:hover {
+  background-color: #f4f2ff;
+}
+
+.transactions-table .no-data {
+  text-align: center;
+  color: #888;
+  font-style: italic;
+  padding: 15px;
+}
+
+/* Saving Goals Section */
+.saving-goals {
+  margin-top: 30px;
+}
+
+.saving-goals h3 {
+  font-size: 1.5rem;
+  color: #333;
+  margin-bottom: 15px;
+}
+
 .saving-goals .goal {
+  margin-bottom: 20px;
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.saving-goals .goal:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+}
+
+.saving-goals .goal h4 {
+  font-size: 1.2rem;
+  color: #555;
+  margin-bottom: 10px;
+}
+
+.saving-goals .goal p {
+  font-size: 1rem;
+  color: #333;
   margin-bottom: 10px;
 }
 
@@ -80,10 +167,18 @@
   background-color: #ddd;
   border-radius: 5px;
   overflow: hidden;
-  margin-top: 5px;
 }
 
 .saving-goals .progress-bar .progress {
   height: 100%;
   background-color: #6c5ce7;
+  transition: width 0.3s ease;
+}
+
+/* Loading State */
+.loading {
+  text-align: center;
+  font-size: 1.5rem;
+  color: #6c5ce7;
+  margin-top: 50px;
 }

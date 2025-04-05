@@ -92,49 +92,86 @@ app.post('/api/setup', (req, res) => {
 // ==========================
 // DASHBOARD API
 // ==========================
+// Dashboard API
 app.get('/api/dashboard', async (req, res) => {
-  try {
-    const query = `
-      SELECT 
-        (SELECT total_balance FROM user_financials WHERE user_id = 1) AS totalBalance,
-        (SELECT total_income FROM user_financials WHERE user_id = 1) AS income,
-        (SELECT total_expense FROM user_financials WHERE user_id = 1) AS expense,
-        (SELECT total_savings FROM user_financials WHERE user_id = 1) AS totalSavings
-    `;
-    const [financials] = await db.promise().query(query);
+  const userId = req.query.userId || 1; // Replace with dynamic user ID if needed
 
+  try {
+    // Query to calculate total balance
+    const totalBalanceQuery = `
+      SELECT 
+        (SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) - 
+         SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END)) AS totalBalance
+      FROM transaction
+      WHERE user_id = ?
+    `;
+
+    // Query to calculate total income and expense
+    const incomeExpenseQuery = `
+      SELECT 
+        SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) AS income,
+        SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END) AS expense
+      FROM transaction
+      WHERE user_id = ?
+    `;
+
+    // Query to calculate total savings
+    const totalSavingsQuery = `
+      SELECT 
+        SUM(saved_amount) AS totalSavings
+      FROM goal
+      WHERE user_id = ?
+    `;
+
+    // Query to fetch recent transactions
     const recentTransactionsQuery = `
       SELECT 
-        DATE_FORMAT(date, '%d %b') AS date,
-        amount,
-        description AS paymentName,
-        type AS method,
-        c.category_name AS category
-      FROM transaction t
-      JOIN category c ON t.category_id = c.category_id
-      WHERE t.user_id = 1
-      ORDER BY t.date DESC
+        t.transaction_id, 
+        t.date, 
+        t.amount, 
+        t.description, 
+        t.type, 
+        c.category_name
+      FROM 
+        transaction t
+      LEFT JOIN 
+        category c ON t.category_id = c.category_id
+      WHERE 
+        t.user_id = ?
+      ORDER BY 
+        t.date DESC
       LIMIT 5
     `;
-    const [recentTransactions] = await db.promise().query(recentTransactionsQuery);
 
+    // Query to fetch saving goals
     const savingGoalsQuery = `
       SELECT 
-        goal_name AS name,
-        saved_amount AS saved,
-        target_amount AS target
+        goal_id, goal_name AS name, target_amount AS target, saved_amount AS saved
       FROM goal
-      WHERE user_id = 1
+      WHERE user_id = ?
     `;
-    const [savingGoals] = await db.promise().query(savingGoalsQuery);
 
-    res.json({
-      ...financials[0],
-      recentTransactions,
-      savingGoals,
-    });
+    // Execute all queries
+    const [totalBalanceResult] = await db.promise().query(totalBalanceQuery, [userId]);
+    const [incomeExpenseResult] = await db.promise().query(incomeExpenseQuery, [userId]);
+    const [totalSavingsResult] = await db.promise().query(totalSavingsQuery, [userId]);
+    const [recentTransactionsResult] = await db.promise().query(recentTransactionsQuery, [userId]);
+    const [savingGoalsResult] = await db.promise().query(savingGoalsQuery, [userId]);
+
+    // Combine results into a single response object
+    const response = {
+      totalBalance: totalBalanceResult[0]?.totalBalance || 0,
+      income: incomeExpenseResult[0]?.income || 0,
+      expense: incomeExpenseResult[0]?.expense || 0,
+      totalSavings: totalSavingsResult[0]?.totalSavings || 0,
+      recentTransactions: recentTransactionsResult,
+      savingGoals: savingGoalsResult,
+    };
+
+    res.json(response);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Error fetching dashboard data:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -333,11 +370,21 @@ app.get('/api/transactions', (req, res) => {
   const userId = req.query.userId || 1;
 
   const query = `
-    SELECT t.transaction_id, t.date, t.amount, t.type, t.description, c.category_name
-    FROM transaction t
-    JOIN category c ON t.category_id = c.category_id
-    WHERE t.user_id = ?
-    ORDER BY t.date DESC
+    SELECT 
+      t.transaction_id, 
+      t.date, 
+      t.amount, 
+      t.type, 
+      t.description, 
+      c.category_name
+    FROM 
+      transaction t
+    LEFT JOIN 
+      category c ON t.category_id = c.category_id
+    WHERE 
+      t.user_id = ?
+    ORDER BY 
+      t.date DESC
   `;
 
   db.query(query, [userId], (err, results) => {
@@ -368,6 +415,54 @@ app.post('/api/transactions', (req, res) => {
       return res.status(500).json({ error: 'Internal server error' });
     }
     res.status(201).json({ message: 'Transaction added successfully', transactionId: results.insertId });
+  });
+});
+
+// Edit Transaction
+app.put('/api/transactions/:id', (req, res) => {
+  const { id } = req.params; // Transaction ID
+  const { date, amount, category, type, description } = req.body;
+
+  if (!date || !amount || !category || !type) {
+    return res.status(400).json({ error: 'All fields are required' });
+  }
+
+  const query = `
+    UPDATE transaction
+    SET date = ?, amount = ?, category_id = ?, type = ?, description = ?
+    WHERE transaction_id = ?
+  `;
+
+  db.query(query, [date, amount, category, type, description, id], (err, results) => {
+    if (err) {
+      console.error('Error updating transaction:', err);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+    if (results.affectedRows === 0) {
+      return res.status(404).json({ message: 'Transaction not found' });
+    }
+    res.json({ message: 'Transaction updated successfully' });
+  });
+});
+
+// Delete Transaction
+app.delete('/api/transactions/:id', (req, res) => {
+  const { id } = req.params; // Transaction ID
+
+  const query = `
+    DELETE FROM transaction
+    WHERE transaction_id = ?
+  `;
+
+  db.query(query, [id], (err, results) => {
+    if (err) {
+      console.error('Error deleting transaction:', err);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+    if (results.affectedRows === 0) {
+      return res.status(404).json({ message: 'Transaction not found' });
+    }
+    res.json({ message: 'Transaction deleted successfully' });
   });
 });
 

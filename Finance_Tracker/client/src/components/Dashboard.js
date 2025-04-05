@@ -14,12 +14,13 @@ const Dashboard = () => {
       try {
         const response = await fetch('http://localhost:5000/api/dashboard');
         const data = await response.json();
+        console.log('Dashboard Data:', data); // Debugging
         setDashboardData(data);
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
       }
     };
-
+  
     fetchData();
   }, []);
 
@@ -69,28 +70,36 @@ const Dashboard = () => {
       {/* Recent Transactions */}
       <div className="recent-transactions">
         <h3>Recent Transactions</h3>
-        <table>
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Amount</th>
-              <th>Payment Name</th>
-              <th>Method</th>
-              <th>Category</th>
-            </tr>
-          </thead>
-          <tbody>
-            {recentTransactions.map((transaction, index) => (
-              <tr key={index}>
-                <td>{transaction.date}</td>
-                <td>${transaction.amount}</td>
-                <td>{transaction.paymentName}</td>
-                <td>{transaction.method}</td>
-                <td>{transaction.category}</td>
+        <div className="table-container">
+          <table className="transactions-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Amount</th>
+                <th>Description</th>
+                <th>Type</th>
+                <th>Category</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {recentTransactions.length > 0 ? (
+                recentTransactions.map((transaction, index) => (
+                  <tr key={index}>
+                    <td>{new Date(transaction.date).toLocaleDateString()}</td>
+                    <td>${transaction.amount.toLocaleString()}</td>
+                    <td>{transaction.description || 'N/A'}</td>
+                    <td>{transaction.type}</td>
+                    <td>{transaction.category_name || 'Uncategorized'}</td> {/* Use category_name */}
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="5" className="no-data">No recent transactions</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Saving Goals */}
