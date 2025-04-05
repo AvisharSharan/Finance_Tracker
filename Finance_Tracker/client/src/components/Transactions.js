@@ -12,6 +12,7 @@ const Transactions = () => {
     type: '',
     description: '',
   });
+  const [editingTransactionId, setEditingTransactionId] = useState(null); // Track the transaction being edited
   const [error, setError] = useState('');
 
   const fetchTransactions = async () => {
@@ -37,34 +38,64 @@ const Transactions = () => {
     fetchCategories();
   }, []);
 
-  const handleAddTransaction = async (e) => {
+  const handleAddOrEditTransaction = async (e) => {
     e.preventDefault();
     if (!newTransaction.date || !newTransaction.amount || !newTransaction.category || !newTransaction.type) {
       setError('All fields are required.');
       return;
     }
+
     try {
-      await axios.post('http://localhost:5000/api/transactions', {
-        userId: 1,
-        date: newTransaction.date,
-        amount: newTransaction.amount,
-        category: newTransaction.category,
-        type: newTransaction.type,
-        description: newTransaction.description,
-      });
+      if (editingTransactionId) {
+        // Edit transaction
+        await axios.put(`http://localhost:5000/api/transactions/${editingTransactionId}`, {
+          userId: 1,
+          ...newTransaction,
+        });
+        setEditingTransactionId(null);
+      } else {
+        // Add new transaction
+        await axios.post('http://localhost:5000/api/transactions', {
+          userId: 1,
+          ...newTransaction,
+        });
+      }
+
       setNewTransaction({ date: '', amount: '', category: '', type: '', description: '' });
       setError('');
       fetchTransactions();
     } catch (error) {
-      console.error('Error adding transaction:', error);
+      console.error('Error saving transaction:', error);
+    }
+  };
+
+  const handleEditTransaction = (transaction) => {
+    setNewTransaction({
+      date: transaction.date.split('T')[0], // Format date for input
+      amount: transaction.amount,
+      category: transaction.category_id,
+      type: transaction.type,
+      description: transaction.description,
+    });
+    setEditingTransactionId(transaction.transaction_id);
+  };
+
+  const handleDeleteTransaction = async (transactionId) => {
+    if (window.confirm('Are you sure you want to delete this transaction?')) {
+      try {
+        await axios.delete(`http://localhost:5000/api/transactions/${transactionId}`);
+        fetchTransactions();
+      } catch (error) {
+        console.error('Error deleting transaction:', error);
+      }
     }
   };
 
   return (
     <div className="transactions-page">
       <div className="left-panel">
-        <h2 className="form-title">Add Transaction</h2>
-        <form className="transaction-form" onSubmit={handleAddTransaction}>
+        <h2 className="form-title">{editingTransactionId ? 'Edit Transaction' : 'Add Transaction'}</h2>
+        <form className="transaction-form" onSubmit={handleAddOrEditTransaction}>
           <div className="form-group">
             <label htmlFor="date">Date</label>
             <input
@@ -124,7 +155,9 @@ const Transactions = () => {
             ></textarea>
           </div>
           {error && <p className="error">{error}</p>}
-          <button type="submit" className="submit-button">Add Transaction</button>
+          <button type="submit" className="submit-button">
+            {editingTransactionId ? 'Update Transaction' : 'Add Transaction'}
+          </button>
         </form>
       </div>
 
@@ -139,6 +172,7 @@ const Transactions = () => {
                 <th>Category</th>
                 <th>Type</th>
                 <th>Description</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -149,6 +183,20 @@ const Transactions = () => {
                   <td>{transaction.category_name}</td>
                   <td>{transaction.type}</td>
                   <td>{transaction.description}</td>
+                  <td className="actions-cell">
+                    <button
+                      className="action-button edit-button"
+                      onClick={() => handleEditTransaction(transaction)}
+                    >
+                      <i className="fas fa-edit"></i>
+                    </button>
+                    <button
+                      className="action-button delete-button"
+                      onClick={() => handleDeleteTransaction(transaction.transaction_id)}
+                    >
+                      <i className="fas fa-trash"></i>
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
