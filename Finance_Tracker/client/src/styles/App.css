@@ -1,0 +1,36 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.app-container {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.sidebar {
+    flex-shrink: 0;
+    width: 250px;
+    background-color: #f4f2ff;
+    color: black;
+    height: 100vh;
+    position: relative;
+}
+
+.content {
+    flex: 1;
+    padding: 20px;
+    background-color: #f7f7f7;
+    overflow-y: auto;
+}
+
+/* Center the login and registration forms */
+.auth-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh; /* Full viewport height */
+  background-color: #f7f7f7;
+}

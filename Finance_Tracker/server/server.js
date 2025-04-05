@@ -1,0 +1,425 @@
+const express = require('express');
+const db = require('./db');
+const cors = require('cors');
+
+const app = express();
+const PORT = 5000;
+
+app.use(express.json());
+app.use(cors());
+
+// ==========================
+// USER AUTHENTICATION
+// ==========================
+
+// User Registration
+app.post('/api/register', (req, res) => {
+  const { name, email, password } = req.body;
+
+  if (!name || !email || !password) {
+    return res.status(400).json({ error: 'All fields are required' });
+  }
+
+  const query = `
+    INSERT INTO user (name, email, password)
+    VALUES (?, ?, ?)
+  `;
+  db.query(query, [name, email, password], (err) => {
+    if (err) {
+      if (err.code === 'ER_DUP_ENTRY') {
+        return res.status(400).json({ error: 'Email already exists' });
+      }
+      return res.status(500).json({ error: err.message });
+    }
+    res.status(201).json({ message: 'User registered successfully' });
+  });
+});
+
+// User Login
+app.post('/api/login', (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ error: 'Email and password are required' });
+  }
+
+  const query = `
+    SELECT * FROM user WHERE email = ? AND password = ?
+  `;
+  db.query(query, [email, password], (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+
+    if (results.length === 0) {
+      return res.status(401).json({ error: 'Invalid email or password' });
+    }
+
+    res.status(200).json({ message: 'Login successful', user: results[0] });
+  });
+});
+
+
+// ==========================
+// INITIAL SETUP API
+// ==========================
+app.post('/api/setup', (req, res) => {
+  const { userId, totalBalance, incomeSource, incomeAmount } = req.body;
+
+  const insertFinancialsQuery = `
+    INSERT INTO user_financials (user_id, total_balance, total_income, total_expense, total_savings)
+    VALUES (?, ?, ?, 0, 0)
+  `;
+  const insertIncomeSourceQuery = `
+    INSERT INTO income_source (source_name)
+    VALUES (?)
+  `;
+  db.query(insertFinancialsQuery, [userId, totalBalance, incomeAmount], (err) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+
+    db.query(insertIncomeSourceQuery, [incomeSource], (err) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+
+      res.status(201).json({ message: 'Initial setup completed successfully' });
+    });
+  });
+});
+
+// ==========================
+// DASHBOARD API
+// ==========================
+app.get('/api/dashboard', async (req, res) => {
+  try {
+    const query = `
+      SELECT 
+        (SELECT total_balance FROM user_financials WHERE user_id = 1) AS totalBalance,
+        (SELECT total_income FROM user_financials WHERE user_id = 1) AS income,
+        (SELECT total_expense FROM user_financials WHERE user_id = 1) AS expense,
+        (SELECT total_savings FROM user_financials WHERE user_id = 1) AS totalSavings
+    `;
+    const [financials] = await db.promise().query(query);
+
+    const recentTransactionsQuery = `
+      SELECT 
+        DATE_FORMAT(date, '%d %b') AS date,
+        amount,
+        description AS paymentName,
+        type AS method,
+        c.category_name AS category
+      FROM transaction t
+      JOIN category c ON t.category_id = c.category_id
+      WHERE t.user_id = 1
+      ORDER BY t.date DESC
+      LIMIT 5
+    `;
+    const [recentTransactions] = await db.promise().query(recentTransactionsQuery);
+
+    const savingGoalsQuery = `
+      SELECT 
+        goal_name AS name,
+        saved_amount AS saved,
+        target_amount AS target
+      FROM goal
+      WHERE user_id = 1
+    `;
+    const [savingGoals] = await db.promise().query(savingGoalsQuery);
+
+    res.json({
+      ...financials[0],
+      recentTransactions,
+      savingGoals,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ==========================
+// BUDGET API
+// ==========================
+app.get('/api/budgets', (req, res) => {
+  const userId = req.query.userId || 1;
+
+  const query = `
+    SELECT b.budget_id, c.category_name, b.monthly_limit, 
+           (SELECT SUM(t.amount) 
+            FROM transaction t 
+            WHERE t.category_id = b.category_id AND t.user_id = b.user_id) AS spent
+    FROM budget b
+    JOIN category c ON b.category_id = c.category_id
+    WHERE b.user_id = ?
+  `;
+
+  db.query(query, [userId], (err, results) => {
+    if (err) {
+      console.error('Error fetching budgets:', err);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+    res.json(results);
+  });
+});
+
+app.post('/api/budgets', (req, res) => {
+  const { userId, category_id, monthly_limit } = req.body;
+
+  if (!userId || !category_id || !monthly_limit) {
+    return res.status(400).json({ error: 'All fields are required' });
+  }
+
+  const query = `
+    INSERT INTO budget (user_id, category_id, monthly_limit)
+    VALUES (?, ?, ?)
+  `;
+
+  db.query(query, [userId, category_id, monthly_limit], (err, results) => {
+    if (err) {
+      console.error('Error adding budget:', err);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+    res.status(201).json({ message: 'Budget added successfully', budgetId: results.insertId });
+  });
+});
+
+app.put('/api/budgets/:id', (req, res) => {
+  const { id } = req.params;
+  const { monthly_limit } = req.body;
+
+  if (!monthly_limit) {
+    return res.status(400).json({ error: 'Monthly limit is required' });
+  }
+
+  const query = `
+    UPDATE budget
+    SET monthly_limit = ?
+    WHERE budget_id = ?
+  `;
+
+  db.query(query, [monthly_limit, id], (err, results) => {
+    if (err) {
+      console.error('Error updating budget:', err);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+    if (results.affectedRows === 0) {
+      return res.status(404).json({ message: 'Budget not found' });
+    }
+    res.json({ message: 'Budget updated successfully' });
+  });
+});
+
+app.delete('/api/budgets/:id', (req, res) => {
+  const { id } = req.params;
+
+  const query = `
+    DELETE FROM budget
+    WHERE budget_id = ?
+  `;
+
+  db.query(query, [id], (err, results) => {
+    if (err) {
+      console.error('Error deleting budget:', err);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+    if (results.affectedRows === 0) {
+      return res.status(404).json({ message: 'Budget not found' });
+    }
+    res.json({ message: 'Budget deleted successfully' });
+  });
+});
+
+// ==========================
+// CATEGORY API
+// ==========================
+app.get('/api/categories', (req, res) => {
+  const query = 'SELECT * FROM category';
+  db.query(query, (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    res.json(results);
+  });
+});
+
+// ==========================
+// GOALS API
+// ==========================
+app.get('/api/goals', (req, res) => {
+  const userId = req.query.userId || 1;
+  const query = `
+    SELECT goal_id, goal_name AS name, target_amount AS target, saved_amount AS saved, deadline
+    FROM goal
+    WHERE user_id = ?
+  `;
+  db.query(query, [userId], (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    res.json(results);
+  });
+});
+
+// Insert a goal
+app.post('/api/goals', (req, res) => {
+  const { userId, name, target, deadline } = req.body;
+  const query = `
+    INSERT INTO goal (user_id, goal_name, target_amount, saved_amount, deadline)
+    VALUES (?, ?, ?, 0, ?)
+  `;
+  db.query(query, [userId, name, target, deadline], (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    res.status(201).json({ message: 'Goal added successfully', goalId: results.insertId });
+  });
+});
+
+// Update Saved Amount for a Goal
+app.put('/api/goals/:id/savings', (req, res) => {
+  const { id } = req.params;
+  const { amount } = req.body;
+
+  if (!amount || amount <= 0) {
+    return res.status(400).json({ error: 'Invalid amount' });
+  }
+
+  const query = `
+    UPDATE goal
+    SET saved_amount = saved_amount + ?
+    WHERE goal_id = ?
+  `;
+
+  db.query(query, [amount, id], (err, results) => {
+    if (err) {
+      console.error('Error updating savings:', err);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+    if (results.affectedRows === 0) {
+      return res.status(404).json({ message: 'Goal not found' });
+    }
+    res.json({ message: 'Savings updated successfully' });
+  });
+});
+
+// Delete a Goal
+app.delete('/api/goals/:id', (req, res) => {
+  const { id } = req.params; // Goal ID
+
+  const query = `
+    DELETE FROM goal
+    WHERE goal_id = ?
+  `;
+
+  db.query(query, [id], (err, results) => {
+    if (err) {
+      console.error('Error deleting goal:', err);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+    if (results.affectedRows === 0) {
+      return res.status(404).json({ message: 'Goal not found' });
+    }
+    res.json({ message: 'Goal deleted successfully' });
+  });
+});
+
+// ==========================
+// TRANSACTION API
+// ==========================
+
+// Fetch Transactions
+app.get('/api/transactions', (req, res) => {
+  const userId = req.query.userId || 1;
+
+  const query = `
+    SELECT t.transaction_id, t.date, t.amount, t.type, t.description, c.category_name
+    FROM transaction t
+    JOIN category c ON t.category_id = c.category_id
+    WHERE t.user_id = ?
+    ORDER BY t.date DESC
+  `;
+
+  db.query(query, [userId], (err, results) => {
+    if (err) {
+      console.error('Error fetching transactions:', err);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+    res.json(results);
+  });
+});
+
+// Add Transaction
+app.post('/api/transactions', (req, res) => {
+  const { userId, date, amount, category, type, description } = req.body;
+
+  if (!userId || !date || !amount || !category || !type) {
+    return res.status(400).json({ error: 'All fields are required' });
+  }
+
+  const query = `
+    INSERT INTO transaction (user_id, category_id, amount, date, type, description)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `;
+
+  db.query(query, [userId, category, amount, date, type, description], (err, results) => {
+    if (err) {
+      console.error('Error adding transaction:', err);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+    res.status(201).json({ message: 'Transaction added successfully', transactionId: results.insertId });
+  });
+});
+
+// ==========================
+// INSIGHTS API
+// ==========================
+app.get('/api/insights/income-expense', (req, res) => {
+  const query = `
+    SELECT 
+      MONTHNAME(date) AS month,
+      SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) AS income,
+      SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END) AS expense
+    FROM transaction
+    WHERE user_id = 1
+    GROUP BY MONTH(date)
+    ORDER BY MONTH(date)
+  `;
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Error fetching income vs expense data:', err);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+    res.json(results);
+  });
+});
+
+// Category-Wise Spending
+app.get('/api/insights/category-spending', (req, res) => {
+  const query = `
+    SELECT 
+      c.category_name AS category,
+      SUM(t.amount) AS amount
+    FROM transaction t
+    JOIN category c ON t.category_id = c.category_id
+    WHERE t.user_id = 1 AND t.type = 'expense'
+    GROUP BY t.category_id
+  `;
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Error fetching category-wise spending data:', err);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+    res.json(results);
+  });
+});
+
+
+// ==========================
+// START SERVER
+// ==========================
+app.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
+});
