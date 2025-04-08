@@ -469,19 +469,22 @@ app.delete('/api/transactions/:id', (req, res) => {
 // ==========================
 // INSIGHTS API
 // ==========================
+// Income vs Expense API
 app.get('/api/insights/income-expense', (req, res) => {
+  const userId = req.query.userId || 1; // Dynamic user ID
+
   const query = `
     SELECT 
-      MONTHNAME(date) AS month,
+      DATE_FORMAT(date, '%M %Y') AS month,
       SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) AS income,
       SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END) AS expense
     FROM transaction
-    WHERE user_id = 1
-    GROUP BY MONTH(date)
-    ORDER BY MONTH(date)
+    WHERE user_id = ?
+    GROUP BY YEAR(date), MONTH(date)
+    ORDER BY YEAR(date), MONTH(date)
   `;
 
-  db.query(query, (err, results) => {
+  db.query(query, [userId], (err, results) => {
     if (err) {
       console.error('Error fetching income vs expense data:', err);
       return res.status(500).json({ error: 'Internal server error' });
@@ -490,21 +493,73 @@ app.get('/api/insights/income-expense', (req, res) => {
   });
 });
 
-// Category-Wise Spending
+// Category-Wise Spending API
 app.get('/api/insights/category-spending', (req, res) => {
+  const userId = req.query.userId || 1; // Dynamic user ID
+
   const query = `
     SELECT 
       c.category_name AS category,
       SUM(t.amount) AS amount
     FROM transaction t
-    JOIN category c ON t.category_id = c.category_id
-    WHERE t.user_id = 1 AND t.type = 'expense'
+    LEFT JOIN category c ON t.category_id = c.category_id
+    WHERE t.user_id = ? AND t.type = 'expense'
     GROUP BY t.category_id
+    ORDER BY amount DESC
   `;
 
-  db.query(query, (err, results) => {
+  db.query(query, [userId], (err, results) => {
     if (err) {
       console.error('Error fetching category-wise spending data:', err);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+    res.json(results);
+  });
+});
+
+// Savings Trend API
+app.get('/api/insights/savings-trend', (req, res) => {
+  const userId = req.query.userId || 1; // Dynamic user ID
+
+  const query = `
+    SELECT 
+      DATE_FORMAT(date, '%M %Y') AS month,
+      (SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) - 
+       SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END)) AS savings
+    FROM transaction
+    WHERE user_id = ?
+    GROUP BY YEAR(date), MONTH(date)
+    ORDER BY YEAR(date), MONTH(date)
+  `;
+
+  db.query(query, [userId], (err, results) => {
+    if (err) {
+      console.error('Error fetching savings trend data:', err);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+    res.json(results);
+  });
+});
+
+// Top Spending Categories API
+app.get('/api/insights/top-categories', (req, res) => {
+  const userId = req.query.userId || 1; // Dynamic user ID
+
+  const query = `
+    SELECT 
+      c.category_name AS category,
+      SUM(t.amount) AS amount
+    FROM transaction t
+    LEFT JOIN category c ON t.category_id = c.category_id
+    WHERE t.user_id = ? AND t.type = 'expense'
+    GROUP BY t.category_id
+    ORDER BY amount DESC
+    LIMIT 5
+  `;
+
+  db.query(query, [userId], (err, results) => {
+    if (err) {
+      console.error('Error fetching top spending categories:', err);
       return res.status(500).json({ error: 'Internal server error' });
     }
     res.json(results);

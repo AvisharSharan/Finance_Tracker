@@ -1,9 +1,11 @@
+/* General Insights Container */
 .insights-container {
   padding: 20px;
   max-width: 1200px;
   margin: 0 auto;
 }
 
+/* Page Title */
 .page-title {
   text-align: center;
   font-size: 2.5rem;
@@ -11,6 +13,41 @@
   margin-bottom: 30px;
 }
 
+/* Key Insights Section */
+.key-insights {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.insight-card {
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.insight-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+.insight-card h3 {
+  font-size: 1.5rem;
+  color: #555;
+  margin-bottom: 10px;
+}
+
+.insight-card p {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #333;
+}
+
+/* Charts Section */
 .charts-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
@@ -23,10 +60,48 @@
   border-radius: 15px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   text-align: center;
+  position: relative; /* Ensure proper positioning for charts */
 }
 
 .chart-card h3 {
   font-size: 1.5rem;
   color: #555;
   margin-bottom: 20px;
+}
+
+/* Ensure Chart Containers Have Proper Dimensions */
+.chart-card .recharts-wrapper {
+  width: 100% !important;
+  height: 300px !important;
+}
+
+/* Trends Section */
+.trends-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 20px;
+  margin-top: 30px;
+}
+
+.top-categories-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.top-categories-list li {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid #ddd;
+}
+
+.top-categories-list .category-name {
+  font-weight: bold;
+  color: #555;
+}
+
+.top-categories-list .category-amount {
+  font-weight: bold;
+  color: #333;
 }
