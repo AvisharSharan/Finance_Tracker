@@ -16,8 +16,10 @@ const Transactions = () => {
   const [error, setError] = useState('');
 
   const fetchTransactions = async () => {
+    const user = JSON.parse(localStorage.getItem('user'));
+    const userId = user?.user_id;
     try {
-      const response = await axios.get('http://localhost:5000/api/transactions?userId=1');
+      const response = await axios.get(`http://localhost:5000/api/transactions?userId=${userId}`);
       setTransactions(response.data);
     } catch (error) {
       console.error('Error fetching transactions:', error);
