@@ -18,6 +18,12 @@ const Transactions = () => {
   const fetchTransactions = async () => {
     const user = JSON.parse(localStorage.getItem('user'));
     const userId = user?.user_id;
+  
+    if (!userId) {
+      console.error('User ID is missing');
+      return;
+    }
+  
     try {
       const response = await axios.get(`http://localhost:5000/api/transactions?userId=${userId}`);
       setTransactions(response.data);
@@ -46,26 +52,34 @@ const Transactions = () => {
       setError('All fields are required.');
       return;
     }
-
+  
     try {
+      const user = JSON.parse(localStorage.getItem('user'));
+      const userId = user?.user_id;
+  
+      if (!userId) {
+        console.error('User ID is missing');
+        return;
+      }
+  
       if (editingTransactionId) {
         // Edit transaction
         await axios.put(`http://localhost:5000/api/transactions/${editingTransactionId}`, {
-          userId: 1,
+          userId,
           ...newTransaction,
         });
         setEditingTransactionId(null);
       } else {
         // Add new transaction
         await axios.post('http://localhost:5000/api/transactions', {
-          userId: 1,
+          userId,
           ...newTransaction,
         });
       }
-
+  
       setNewTransaction({ date: '', amount: '', category: '', type: '', description: '' });
       setError('');
-      fetchTransactions();
+      fetchTransactions(); // Refresh the transaction list
     } catch (error) {
       console.error('Error saving transaction:', error);
     }
@@ -86,7 +100,7 @@ const Transactions = () => {
     if (window.confirm('Are you sure you want to delete this transaction?')) {
       try {
         await axios.delete(`http://localhost:5000/api/transactions/${transactionId}`);
-        fetchTransactions();
+        fetchTransactions(); // Refresh the transaction list
       } catch (error) {
         console.error('Error deleting transaction:', error);
       }

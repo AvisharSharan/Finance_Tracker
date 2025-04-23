@@ -371,7 +371,7 @@ app.delete('/api/goals/:id', (req, res) => {
 
 // Fetch Transactions
 app.get('/api/transactions', (req, res) => {
-  const userId = req.query.userId || 1;
+  const userId = req.query.userId;
 
   const query = `
     SELECT 
