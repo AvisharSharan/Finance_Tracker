@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import '../styles/Goals.css';
 
@@ -9,19 +9,25 @@ const Goals = () => {
   const [savingsAmount, setSavingsAmount] = useState('');
   const [error, setError] = useState('');
 
+  // Retrieve the logged-in user's ID from localStorage
+  const user = JSON.parse(localStorage.getItem('user'));
+  const userId = user?.user_id;
+
   // Fetch goals from the backend
-  const fetchGoals = async () => {
+  const fetchGoals = useCallback(async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/goals?userId=1');
+      const response = await axios.get(`http://localhost:5000/api/goals?userId=${userId}`);
       setGoals(response.data);
     } catch (error) {
       console.error('Error fetching goals:', error);
     }
-  };
+  }, [userId]);
 
   useEffect(() => {
-    fetchGoals();
-  }, []);
+    if (userId) {
+      fetchGoals();
+    }
+  }, [userId, fetchGoals]);
 
   // Handle form submission to add a new goal
   const handleAddGoal = async (e) => {
@@ -32,7 +38,7 @@ const Goals = () => {
     }
     try {
       await axios.post('http://localhost:5000/api/goals', {
-        userId: 1,
+        userId, // Pass the logged-in user's ID
         name: newGoal.name,
         target: parseFloat(newGoal.target),
         deadline: newGoal.deadline,
@@ -54,6 +60,7 @@ const Goals = () => {
     }
     try {
       await axios.put(`http://localhost:5000/api/goals/${addSavingsGoalId}/savings`, {
+        userId, // Pass the logged-in user's ID
         amount: parseFloat(savingsAmount),
       });
       setSavingsAmount('');
@@ -68,7 +75,9 @@ const Goals = () => {
   // Handle deleting a goal
   const handleDeleteGoal = async (goalId) => {
     try {
-      await axios.delete(`http://localhost:5000/api/goals/${goalId}`);
+      await axios.delete(`http://localhost:5000/api/goals/${goalId}`, {
+        data: { userId }, // Pass the logged-in user's ID
+      });
       setGoals(goals.filter((goal) => goal.goal_id !== goalId)); // Update state to remove the deleted goal
     } catch (error) {
       console.error('Error deleting goal:', error);

@@ -94,7 +94,11 @@ app.post('/api/setup', (req, res) => {
 // ==========================
 // Dashboard API
 app.get('/api/dashboard', async (req, res) => {
-  const userId = req.query.userId || 1; // Replace with dynamic user ID if needed
+  const userId = req.query.userId;
+
+  if (!userId) {
+    return res.status(400).json({ error: 'User ID is required' });
+  }
 
   try {
     // Query to calculate total balance
