@@ -475,23 +475,27 @@ app.delete('/api/transactions/:id', (req, res) => {
 // ==========================
 // Income vs Expense API
 app.get('/api/insights/income-expense', (req, res) => {
-  const userId = req.query.userId || 1; // Dynamic user ID
+  const userId = req.query.userId;
+
+  if (!userId) {
+    return res.status(400).json({ error: 'User ID is required' });
+  }
 
   const query = `
     SELECT 
       DATE_FORMAT(date, '%M %Y') AS month,
-      SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) AS income,
-      SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END) AS expense
+      SUM(CASE WHEN type = 'income' THEN CAST(amount AS DECIMAL(10, 2)) ELSE 0 END) AS income,
+      SUM(CASE WHEN type = 'expense' THEN CAST(amount AS DECIMAL(10, 2)) ELSE 0 END) AS expense
     FROM transaction
     WHERE user_id = ?
-    GROUP BY YEAR(date), MONTH(date)
+    GROUP BY DATE_FORMAT(date, '%M %Y')
     ORDER BY YEAR(date), MONTH(date)
   `;
 
   db.query(query, [userId], (err, results) => {
     if (err) {
-      console.error('Error fetching income vs expense data:', err);
-      return res.status(500).json({ error: 'Internal server error' });
+      console.error('Error fetching income vs expense data:', err.message);
+      return res.status(500).json({ error: 'Internal server error', details: err.message });
     }
     res.json(results);
   });
@@ -499,7 +503,11 @@ app.get('/api/insights/income-expense', (req, res) => {
 
 // Category-Wise Spending API
 app.get('/api/insights/category-spending', (req, res) => {
-  const userId = req.query.userId || 1; // Dynamic user ID
+  const userId = req.query.userId;
+
+  if (!userId) {
+    return res.status(400).json({ error: 'User ID is required' });
+  }
 
   const query = `
     SELECT 
@@ -523,7 +531,11 @@ app.get('/api/insights/category-spending', (req, res) => {
 
 // Savings Trend API
 app.get('/api/insights/savings-trend', (req, res) => {
-  const userId = req.query.userId || 1; // Dynamic user ID
+  const userId = req.query.userId;
+
+  if (!userId) {
+    return res.status(400).json({ error: 'User ID is required' });
+  }
 
   const query = `
     SELECT 
@@ -547,7 +559,11 @@ app.get('/api/insights/savings-trend', (req, res) => {
 
 // Top Spending Categories API
 app.get('/api/insights/top-categories', (req, res) => {
-  const userId = req.query.userId || 1; // Dynamic user ID
+  const userId = req.query.userId;
+
+  if (!userId) {
+    return res.status(400).json({ error: 'User ID is required' });
+  }
 
   const query = `
     SELECT 
@@ -558,7 +574,6 @@ app.get('/api/insights/top-categories', (req, res) => {
     WHERE t.user_id = ? AND t.type = 'expense'
     GROUP BY t.category_id
     ORDER BY amount DESC
-    LIMIT 5
   `;
 
   db.query(query, [userId], (err, results) => {

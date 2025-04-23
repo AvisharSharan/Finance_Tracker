@@ -14,16 +14,19 @@ const Insights = () => {
   // Fetch insights data from the backend
   useEffect(() => {
     const fetchInsights = async () => {
-      try {
-        const incomeExpenseResponse = await axios.get('http://localhost:5000/api/insights/income-expense');
-        const categoryResponse = await axios.get('http://localhost:5000/api/insights/category-spending');
-        const savingsTrendResponse = await axios.get('http://localhost:5000/api/insights/savings-trend');
-        const topCategoriesResponse = await axios.get('http://localhost:5000/api/insights/top-categories');
+      const user = JSON.parse(localStorage.getItem('user'));
+      const userId = user?.user_id;
   
-        console.log('Income vs Expense Data:', incomeExpenseResponse.data);
-        console.log('Category Data:', categoryResponse.data);
-        console.log('Savings Trend Data:', savingsTrendResponse.data);
-        console.log('Top Categories Data:', topCategoriesResponse.data);
+      if (!userId) {
+        console.error('User ID is missing');
+        return;
+      }
+  
+      try {
+        const incomeExpenseResponse = await axios.get(`http://localhost:5000/api/insights/income-expense?userId=${userId}`);
+        const categoryResponse = await axios.get(`http://localhost:5000/api/insights/category-spending?userId=${userId}`);
+        const savingsTrendResponse = await axios.get(`http://localhost:5000/api/insights/savings-trend?userId=${userId}`);
+        const topCategoriesResponse = await axios.get(`http://localhost:5000/api/insights/top-categories?userId=${userId}`);
   
         setIncomeExpenseData(incomeExpenseResponse.data);
         setCategoryData(categoryResponse.data);
@@ -43,23 +46,26 @@ const Insights = () => {
   return (
     <div className="insights-container">
       <h2 className="page-title">Insights</h2>
-
+  
       {/* Key Insights Section */}
       <div className="key-insights">
         <div className="insight-card">
           <h3>Total Income</h3>
-          <p>${incomeExpenseData.reduce((acc, curr) => acc + curr.income, 0).toLocaleString()}</p>
+          <p>${incomeExpenseData.reduce((acc, curr) => acc + parseFloat(curr.income), 0).toLocaleString()}</p>
         </div>
         <div className="insight-card">
           <h3>Total Expense</h3>
-          <p>${incomeExpenseData.reduce((acc, curr) => acc + curr.expense, 0).toLocaleString()}</p>
+          <p>${incomeExpenseData.reduce((acc, curr) => acc + parseFloat(curr.expense), 0).toLocaleString()}</p>
         </div>
         <div className="insight-card">
           <h3>Net Savings</h3>
-          <p>${(incomeExpenseData.reduce((acc, curr) => acc + curr.income, 0) - incomeExpenseData.reduce((acc, curr) => acc + curr.expense, 0)).toLocaleString()}</p>
+          <p>${(
+          incomeExpenseData.reduce((acc, curr) => acc + (parseFloat(curr.income) || 0), 0) -
+          incomeExpenseData.reduce((acc, curr) => acc + (parseFloat(curr.expense) || 0), 0)
+          ).toLocaleString()}</p>
         </div>
       </div>
-
+  
       {/* Charts Section */}
       <div className="charts-grid">
         {/* Income vs Expense Chart */}
@@ -77,7 +83,7 @@ const Insights = () => {
             </BarChart>
           </ResponsiveContainer>
         </div>
-
+  
         {/* Category-Wise Spending Chart */}
         <div className="chart-card">
           <h3>Category-Wise Spending</h3>
@@ -103,7 +109,7 @@ const Insights = () => {
           </ResponsiveContainer>
         </div>
       </div>
-
+  
       {/* Trends Section */}
       <div className="trends-grid">
         {/* Savings Trend */}
@@ -120,7 +126,7 @@ const Insights = () => {
             </LineChart>
           </ResponsiveContainer>
         </div>
-
+  
         {/* Top Spending Categories */}
         <div className="chart-card">
           <h3>Top Spending Categories</h3>
@@ -136,6 +142,6 @@ const Insights = () => {
       </div>
     </div>
   );
-};
+}
 
 export default Insights;
