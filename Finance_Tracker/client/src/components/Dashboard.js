@@ -12,7 +12,10 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/dashboard');
+        const user = JSON.parse(localStorage.getItem('user'));
+        const userId = user?.user_id;
+
+        const response = await fetch(`http://localhost:5000/api/dashboard?userId=${userId}`);
         const data = await response.json();
         console.log('Dashboard Data:', data); // Debugging
         setDashboardData(data);
