@@ -16,8 +16,19 @@ const Budget = () => {
   const fetchBudgets = async () => {
     setLoading(true);
     setError(null);
+  
+    const user = JSON.parse(localStorage.getItem('user'));
+    const userId = user?.user_id;
+  
+    if (!userId) {
+      console.error('User ID is missing');
+      setError('User ID is missing. Please log in again.');
+      setLoading(false);
+      return;
+    }
+  
     try {
-      const response = await axios.get('http://localhost:5000/api/budgets?userId=1');
+      const response = await axios.get(`http://localhost:5000/api/budgets?userId=${userId}`);
       setBudgets(response.data);
     } catch (error) {
       console.error('Error fetching budgets:', error);
@@ -48,14 +59,24 @@ const Budget = () => {
 
   const handleAddBudget = async (e) => {
     e.preventDefault();
+  
+    const user = JSON.parse(localStorage.getItem('user'));
+    const userId = user?.user_id;
+  
+    if (!userId) {
+      console.error('User ID is missing');
+      alert('User ID is missing. Please log in again.');
+      return;
+    }
+  
     try {
       await axios.post('http://localhost:5000/api/budgets', {
+        userId, // Pass the logged-in user's ID
         category_id: newBudget.category,
         monthly_limit: parseFloat(newBudget.monthlyLimit),
-        userId: 1,
       });
       setNewBudget({ category: '', monthlyLimit: '' });
-      fetchBudgets();
+      fetchBudgets(); // Refresh the budget list
     } catch (error) {
       console.error('Error adding budget:', error);
       alert('Failed to add budget. Please try again.');
@@ -68,13 +89,23 @@ const Budget = () => {
 
   const handleUpdateBudget = async (e) => {
     e.preventDefault();
+  
+    const user = JSON.parse(localStorage.getItem('user'));
+    const userId = user?.user_id;
+  
+    if (!userId) {
+      console.error('User ID is missing');
+      alert('User ID is missing. Please log in again.');
+      return;
+    }
+  
     try {
       await axios.put(`http://localhost:5000/api/budgets/${editBudget.budget_id}`, {
+        userId, // Pass the logged-in user's ID
         monthly_limit: parseFloat(editBudget.monthly_limit),
-        userId: 1,
       });
       setEditBudget(null);
-      fetchBudgets();
+      fetchBudgets(); // Refresh the budget list
     } catch (error) {
       console.error('Error updating budget:', error);
       alert('Failed to update budget. Please try again.');
@@ -82,10 +113,21 @@ const Budget = () => {
   };
 
   const handleDeleteBudget = async (budgetId) => {
+    const user = JSON.parse(localStorage.getItem('user'));
+    const userId = user?.user_id;
+  
+    if (!userId) {
+      console.error('User ID is missing');
+      alert('User ID is missing. Please log in again.');
+      return;
+    }
+  
     if (window.confirm('Are you sure you want to delete this budget?')) {
       try {
-        await axios.delete(`http://localhost:5000/api/budgets/${budgetId}`);
-        fetchBudgets();
+        await axios.delete(`http://localhost:5000/api/budgets/${budgetId}`, {
+          data: { userId }, // Pass the logged-in user's ID
+        });
+        fetchBudgets(); // Refresh the budget list
       } catch (error) {
         console.error('Error deleting budget:', error);
         alert('Failed to delete budget. Please try again.');
