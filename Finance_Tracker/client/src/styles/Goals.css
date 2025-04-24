@@ -1,4 +1,3 @@
-/* General Container */
 .goals-container {
   padding: 20px;
   max-width: 1200px;
@@ -6,7 +5,6 @@
   font-family: 'Poppins', sans-serif;
 }
 
-/* Page Title */
 .page-title {
   text-align: center;
   font-size: 2.5rem;
@@ -14,7 +12,6 @@
   margin-bottom: 30px;
 }
 
-/* Form Section */
 .form-container {
   background: #ffffff;
   padding: 30px;
@@ -73,15 +70,13 @@
   transform: scale(1.05);
 }
 
-/* Progress Section Heading */
 .progress-section-title {
   font-size: 2rem;
   color: #333;
   text-align: center;
-  margin:  40px 0px;
+  margin: 40px 0px;
 }
 
-/* Goals List Section */
 .goals-list {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -89,7 +84,6 @@
   justify-content: center;
 }
 
-/* Goal Card */
 .goal-card {
   background: #ffffff;
   padding: 20px;
@@ -118,7 +112,6 @@
   font-size: 0.9rem;
 }
 
-/* Progress Bar and Add Savings Button */
 .progress-bar-container {
   display: flex;
   align-items: center;
@@ -169,7 +162,6 @@
   font-weight: bold;
 }
 
-/* Add Savings Form */
 .add-savings-form {
   margin-top: 15px;
   display: flex;
@@ -201,7 +193,6 @@
   background-color: #e74c3c;
 }
 
-/* Delete Button */
 .delete-button {
   background-color: #e74c3c;
   color: white;
@@ -218,14 +209,12 @@
   transform: scale(1.05);
 }
 
-/* Action Buttons Container */
 .action-buttons {
   display: flex;
   align-items: center;
-  gap: 10px; /* Space between the "+" and trash icons */
+  gap: 10px;
 }
 
-/* Delete Icon Button */
 .delete-icon-button {
   width: 40px;
   height: 40px;

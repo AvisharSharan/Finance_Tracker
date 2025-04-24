@@ -111,7 +111,7 @@
   padding: 15px;
   text-align: left;
   border-bottom: 1px solid #ddd;
-  vertical-align: middle; /* Ensures content is vertically centered */
+  vertical-align: middle;
 }
 
 .transactions-table .actions-cell {
@@ -128,8 +128,8 @@
   margin: 0 5px;
   border-radius: 5px;
   display: inline-flex;
-  align-items: center; /* Centers the icon vertically */
-  justify-content: center; /* Centers the icon horizontally */
+  align-items: center;
+  justify-content: center;
 }
 
 .edit-button {

@@ -71,12 +71,12 @@ const Budget = () => {
   
     try {
       await axios.post('http://localhost:5000/api/budgets', {
-        userId, // Pass the logged-in user's ID
+        userId,
         category_id: newBudget.category,
         monthly_limit: parseFloat(newBudget.monthlyLimit),
       });
       setNewBudget({ category: '', monthlyLimit: '' });
-      fetchBudgets(); // Refresh the budget list
+      fetchBudgets();
     } catch (error) {
       console.error('Error adding budget:', error);
       alert('Failed to add budget. Please try again.');
@@ -101,11 +101,11 @@ const Budget = () => {
   
     try {
       await axios.put(`http://localhost:5000/api/budgets/${editBudget.budget_id}`, {
-        userId, // Pass the logged-in user's ID
+        userId,
         monthly_limit: parseFloat(editBudget.monthly_limit),
       });
       setEditBudget(null);
-      fetchBudgets(); // Refresh the budget list
+      fetchBudgets();
     } catch (error) {
       console.error('Error updating budget:', error);
       alert('Failed to update budget. Please try again.');
@@ -125,9 +125,9 @@ const Budget = () => {
     if (window.confirm('Are you sure you want to delete this budget?')) {
       try {
         await axios.delete(`http://localhost:5000/api/budgets/${budgetId}`, {
-          data: { userId }, // Pass the logged-in user's ID
+          data: { userId },
         });
-        fetchBudgets(); // Refresh the budget list
+        fetchBudgets();
       } catch (error) {
         console.error('Error deleting budget:', error);
         alert('Failed to delete budget. Please try again.');
@@ -141,8 +141,6 @@ const Budget = () => {
   return (
     <div className="budget-container">
       <h2>Budget</h2>
-
-      {/* Add Budget Form */}
       <form className="add-budget-form" onSubmit={handleAddBudget}>
         <div>
           <label htmlFor="category">Category:</label>
@@ -176,8 +174,6 @@ const Budget = () => {
         </div>
         <button type="submit">Add Budget</button>
       </form>
-
-      {/* Edit Budget Form */}
       {editBudget && (
         <form className="edit-budget-form" onSubmit={handleUpdateBudget}>
           <div>
@@ -202,8 +198,6 @@ const Budget = () => {
           </button>
         </form>
       )}
-
-      {/* Budget Table */}
       <table className="budget-table">
         <thead>
           <tr>

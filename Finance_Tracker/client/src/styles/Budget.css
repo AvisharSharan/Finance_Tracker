@@ -1,4 +1,3 @@
-/* Main Budget Container */
 .budget-container {
   padding: 30px;
   background-color: #ffffff;
@@ -8,7 +7,6 @@
   margin: 30px auto;
 }
 
-/* Budget Header */
 .budget-container h2 {
   margin-bottom: 25px;
   color: #333;
@@ -17,7 +15,6 @@
   font-weight: bold;
 }
 
-/* Add Budget Form */
 .add-budget-form {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -69,7 +66,6 @@
   background-color: #5a4bcf;
 }
 
-/* Edit Budget Form */
 .edit-budget-form {
   display: grid;
   grid-template-columns: 1fr auto auto;
@@ -112,7 +108,6 @@
   background-color: #c0392b;
 }
 
-/* Budget Table */
 .budget-table-container {
   width: 100%;
   overflow-x: auto;
@@ -150,7 +145,6 @@
   font-weight: bold;
 }
 
-/* Buttons in the Actions Column */
 .budget-table td button {
   display: flex;
   align-items: center;
@@ -189,7 +183,6 @@
   background-color: #c0392b;
 }
 
-/* Progress Bar */
 .progress-bar {
   width: 100%;
   height: 12px;
@@ -206,7 +199,6 @@
   min-width: 5px;
 }
 
-/* Responsive Design */
 @media (max-width: 768px) {
   .add-budget-form {
     grid-template-columns: 1fr;

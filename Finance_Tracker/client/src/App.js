@@ -12,19 +12,18 @@ import './styles/App.css';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
-  const user = JSON.parse(localStorage.getItem('user')); // Check if the user is logged in
+  const user = JSON.parse(localStorage.getItem('user'));
   return user ? children : <Navigate to="/login" />;
 };
 
 function App() {
-  const location = useLocation(); // Get the current route
+  const location = useLocation();
 
   // Check if the current route is login or register
   const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
 
   return (
     <div className="app-container">
-      {/* Render Sidebar only if it's not an auth page */}
       {!isAuthPage && <Sidebar />}
       <div className={`content ${isAuthPage ? 'auth-page' : ''}`}>
         <Routes>
@@ -74,8 +73,7 @@ function App() {
             }
           />
 
-          {/* Default Route: Redirect '/' to '/dashboard' */}
-          <Route path="/" element={<Navigate to="/dashboard" />} />
+          <Route path="/" element={<Navigate to="/login" />} />
         </Routes>
       </div>
     </div>
