@@ -17,11 +17,36 @@ const Sidebar = () => {
   const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [activeRoute, setActiveRoute] = useState('/dashboard');
-
+  const [userName, setUserName] = useState('');
+  
   // Track active route for animation effects
   useEffect(() => {
     setActiveRoute(location.pathname);
   }, [location]);
+  
+  // Get user data from localStorage
+  useEffect(() => {
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      try {
+        const parsedUser = JSON.parse(userData);
+        // Extract first name from user data
+        if (parsedUser.firstName) {
+          setUserName(parsedUser.firstName);
+        } else if (parsedUser.name) {
+          // If firstName not available, try to get first part of full name
+          const firstName = parsedUser.name.split(' ')[0];
+          setUserName(firstName);
+        } else {
+          // Fallback
+          setUserName('User');
+        }
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+        setUserName('User');
+      }
+    }
+  }, []);
 
   // Handle logout functionality
   const handleLogout = () => {
@@ -37,6 +62,14 @@ const Sidebar = () => {
     { path: '/insights', name: 'Insights', icon: InsightsIcon },
     { path: '/transactions', name: 'Transactions', icon: TransactionsIcon }
   ];
+
+  // Get user initials for avatar
+  const getUserInitials = () => {
+    if (userName) {
+      return userName.charAt(0).toUpperCase();
+    }
+    return 'FT'; // Default fallback
+  };
 
   return (
     <aside className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
@@ -86,11 +119,11 @@ const Sidebar = () => {
         <div className="sidebar-footer">
           <div className="user-section">
             <div className="user-avatar">
-              <span>FT</span>
+              <span>{getUserInitials()}</span>
             </div>
             {!isCollapsed && (
               <div className="user-info">
-                <p className="user-name">User</p>
+                <p className="user-name">{userName || 'User'}</p>
                 <p className="user-status">Active</p>
               </div>
             )}
