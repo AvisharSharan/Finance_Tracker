@@ -1,70 +1,112 @@
-# Getting Started with Create React App
+# Finance Tracker
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A modern web application for tracking personal finances, managing budgets, setting financial goals, and gaining insights into spending patterns.
 
-## Available Scripts
+![Finance Tracker Logo](./src/assets/icons/logo.png)
 
-In the project directory, you can run:
+## Features
 
-### `npm start`
+- **Dashboard**: Overview of your financial health with key metrics at a glance
+- **Transactions**: Add, edit, delete and search your income and expense transactions
+- **Budget**: Create and manage budgets for different expense categories
+- **Goals**: Set savings goals with deadlines and track your progress
+- **Insights**: Visualize your financial data with interactive charts and trends
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## Tech Stack
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+### Frontend
+- React.js
+- Axios for API requests
+- Recharts for data visualization
+- Modern CSS with custom styling
 
-### `npm test`
+### Backend
+- Node.js
+- Express.js
+- MySQL database
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Getting Started
 
-### `npm run build`
+### Prerequisites
+- Node.js (v14 or higher)
+- npm or yarn
+- MySQL
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### Installation
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+1. Clone the repository
+```bash
+git clone <repository-url>
+cd Finance_Tracker
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+2. Install frontend dependencies
+```bash
+cd client
+npm install
+```
 
-### `npm run eject`
+3. Install backend dependencies
+```bash
+cd ../server
+npm install
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+4. Set up the database
+- Create a MySQL database
+- Configure the connection details in `server/db.js`
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+5. Start the backend server
+```bash
+cd server
+nodemon server.js
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+6. Start the frontend application
+```bash
+cd client
+npm start
+```
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+7. Open your browser and navigate to `http://localhost:3000`
 
-## Learn More
+## Project Structure
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+```
+Finance_Tracker/
+├── client/                  # Frontend React application
+│   ├── public/              # Static files
+│   └── src/
+│       ├── assets/          # Images, icons, etc.
+│       ├── components/      # React components
+│       └── styles/          # CSS stylesheets
+└── server/                  # Backend Node.js application
+    ├── db.js                # Database connection
+    └── server.js            # Express server
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## Usage
 
-### Code Splitting
+1. **Registration/Login**: Create an account and log in to start tracking your finances
+2. **Dashboard**: View your financial summary and recent transactions
+3. **Transactions**: Add your income and expenses with categories and descriptions
+4. **Budget**: Set monthly budgets for different spending categories
+5. **Goals**: Create savings goals and track your progress towards them
+6. **Insights**: Analyze your spending patterns and financial trends
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+## Screenshots
 
-### Analyzing the Bundle Size
+<!-- Add screenshots of your application here -->
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+## Contributing
 
-### Making a Progressive Web App
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+## License
 
-### Advanced Configuration
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+## Acknowledgments
 
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- Icons from [Material Design Icons](https://materialdesignicons.com/)
+- Charts powered by [Recharts](https://recharts.org/)
