@@ -2,8 +2,6 @@
 
 A modern web application for tracking personal finances, managing budgets, setting financial goals, and gaining insights into spending patterns.
 
-![Finance Tracker Logo](./src/assets/icons/logo.png)
-
 ## Features
 
 - **Dashboard**: Overview of your financial health with key metrics at a glance
