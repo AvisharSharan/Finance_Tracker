@@ -99,3 +99,13 @@
   font-weight: bold;
   color: #333;
 }
+
+.no-data-message {
+  padding: 50px 20px;
+  text-align: center;
+  color: #888;
+  font-size: 1.2rem;
+  background-color: #f9f9f9;
+  border-radius: 10px;
+  border: 1px dashed #ddd;
+}

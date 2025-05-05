@@ -483,20 +483,24 @@ app.get('/api/insights/income-expense', (req, res) => {
 
   const query = `
     SELECT 
-      DATE_FORMAT(date, '%M %Y') AS month,
+      CONCAT(MONTHNAME(date), ' ', YEAR(date)) AS month,
       SUM(CASE WHEN type = 'income' THEN CAST(amount AS DECIMAL(10, 2)) ELSE 0 END) AS income,
       SUM(CASE WHEN type = 'expense' THEN CAST(amount AS DECIMAL(10, 2)) ELSE 0 END) AS expense
     FROM transaction
     WHERE user_id = ?
-    GROUP BY DATE_FORMAT(date, '%M %Y')
+    GROUP BY month, YEAR(date), MONTH(date)
     ORDER BY YEAR(date), MONTH(date)
   `;
 
   db.query(query, [userId], (err, results) => {
     if (err) {
       console.error('Error fetching income vs expense data:', err.message);
+      console.error('SQL Query:', query);
+      console.error('User ID:', userId);
       return res.status(500).json({ error: 'Internal server error', details: err.message });
     }
+    
+    console.log('Income vs Expense data successfully fetched:', results);
     res.json(results);
   });
 });
@@ -512,7 +516,7 @@ app.get('/api/insights/category-spending', (req, res) => {
   const query = `
     SELECT 
       c.category_name AS category,
-      SUM(t.amount) AS amount
+      SUM(CAST(t.amount AS DECIMAL(10, 2))) AS amount
     FROM transaction t
     LEFT JOIN category c ON t.category_id = c.category_id
     WHERE t.user_id = ? AND t.type = 'expense'
@@ -522,9 +526,13 @@ app.get('/api/insights/category-spending', (req, res) => {
 
   db.query(query, [userId], (err, results) => {
     if (err) {
-      console.error('Error fetching category-wise spending data:', err);
-      return res.status(500).json({ error: 'Internal server error' });
+      console.error('Error fetching category-wise spending data:', err.message);
+      console.error('SQL Query:', query);
+      console.error('User ID:', userId);
+      return res.status(500).json({ error: 'Internal server error', details: err.message });
     }
+    
+    console.log('Category-wise spending data successfully fetched:', results);
     res.json(results);
   });
 });
@@ -539,20 +547,24 @@ app.get('/api/insights/savings-trend', (req, res) => {
 
   const query = `
     SELECT 
-      DATE_FORMAT(date, '%M %Y') AS month,
-      (SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) - 
-       SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END)) AS savings
+      CONCAT(MONTHNAME(date), ' ', YEAR(date)) AS month,
+      (SUM(CASE WHEN type = 'income' THEN CAST(amount AS DECIMAL(10, 2)) ELSE 0 END) - 
+       SUM(CASE WHEN type = 'expense' THEN CAST(amount AS DECIMAL(10, 2)) ELSE 0 END)) AS savings
     FROM transaction
     WHERE user_id = ?
-    GROUP BY YEAR(date), MONTH(date)
+    GROUP BY month, YEAR(date), MONTH(date)
     ORDER BY YEAR(date), MONTH(date)
   `;
 
   db.query(query, [userId], (err, results) => {
     if (err) {
-      console.error('Error fetching savings trend data:', err);
-      return res.status(500).json({ error: 'Internal server error' });
+      console.error('Error fetching savings trend data:', err.message);
+      console.error('SQL Query:', query);
+      console.error('User ID:', userId);
+      return res.status(500).json({ error: 'Internal server error', details: err.message });
     }
+    
+    console.log('Savings trend data successfully fetched:', results);
     res.json(results);
   });
 });
@@ -568,7 +580,7 @@ app.get('/api/insights/top-categories', (req, res) => {
   const query = `
     SELECT 
       c.category_name AS category,
-      SUM(t.amount) AS amount
+      SUM(CAST(t.amount AS DECIMAL(10, 2))) AS amount
     FROM transaction t
     LEFT JOIN category c ON t.category_id = c.category_id
     WHERE t.user_id = ? AND t.type = 'expense'
@@ -578,9 +590,13 @@ app.get('/api/insights/top-categories', (req, res) => {
 
   db.query(query, [userId], (err, results) => {
     if (err) {
-      console.error('Error fetching top spending categories:', err);
-      return res.status(500).json({ error: 'Internal server error' });
+      console.error('Error fetching top spending categories:', err.message);
+      console.error('SQL Query:', query);
+      console.error('User ID:', userId);
+      return res.status(500).json({ error: 'Internal server error', details: err.message });
     }
+    
+    console.log('Top spending categories data successfully fetched:', results);
     res.json(results);
   });
 });
